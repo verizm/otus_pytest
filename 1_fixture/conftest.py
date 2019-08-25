@@ -9,6 +9,7 @@ def function_fixture(request):
 
     def fin():
         print(f"\n[F] Finelize from {request.scope}")
+
     request.addfinalizer(fin)
 
 @pytest.fixture(scope="class")

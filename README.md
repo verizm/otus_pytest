@@ -14,4 +14,4 @@ pip3 install -r requirements.txt
 
 ### Run pylint
 
-pylint --ignore=env -rn *.py 0_math/*.py 1_fixture/*.py 2_api/*.py 3_data_driven/*.py
+pylint --ignore=env -rn *.py 0_math/*.py 1_fixture/*.py 2_api/*.py 3_data_driven/*.py 4_opencart/*.py
