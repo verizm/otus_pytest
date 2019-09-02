@@ -1,7 +1,7 @@
 """
 Модуль для тестирования frontend opencart
 """
-from locators_opencart import MainPage, AdminPage, Items
+from opencart_locators import MainPage, AdminPage, Items
 
 def test_search_iphone(get_base_url_fixture, get_parametrize_drivers_fixture):
     """
@@ -14,7 +14,7 @@ def test_search_iphone(get_base_url_fixture, get_parametrize_drivers_fixture):
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
     search_input = driver.find_element_by_name(MainPage.search_button)
-    search_input.send_keys(Items.phone)
+    search_input.send_keys(Items.product_iphone)
     search_button = driver.find_element_by_class_name(MainPage.input_field)
     search_button.click()
 
@@ -73,6 +73,7 @@ def test_login_admin(get_base_url_fixture, get_parametrize_drivers_fixture):
     search_input_password.send_keys(AdminPage.keys_password)
     search_button = driver.find_element_by_class_name(AdminPage.enter_admin_button)
     search_button.click()
+
     assert AdminPage.main_admin_title in driver.title
 
 

@@ -7,3 +7,5 @@ class MainPage:
     shopping_cart_button = "//html/body/nav/div/div[2]/ul/li[4]/a"
     wish_list_button = "wishlist-total"
     about_us_button = "/html/body/footer/div/div/div[1]/ul/li[1]/a"
+    catalog_button = "menu-catalog"
+    product_button = "Products"

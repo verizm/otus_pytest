@@ -1,0 +1,117 @@
+1. Подготовить виртуальную машину Ubuntu Server 18.04
+Скачать можно здесь: https://www.ubuntu.com/download/server/thank-you?country=RU&version=18.04.2&architecture=amd64
+Требования к железу ВМ: 1 сетевая карта, 2CPU, 2048Mb оперативной памяти, 15Gb HDD
+
+2. Обновить пакеты
+sudo apt-get update
+
+3. Установить apache
+sudo apt-get install apache2
+
+4. Отключить directory listing
+sudo sed -i "s/Options Indexes FollowSymLinks/Options FollowSymLinks/" /etc/apache2/apache2.conf
+sudo systemctl stop apache2.service
+sudo systemctl start apache2.service
+sudo systemctl enable apache2.service
+
+5. Установить mariadb
+sudo apt-get install mariadb-server mariadb-client
+sudo systemctl stop mariadb.service
+sudo systemctl start mariadb.service
+sudo systemctl enable mariadb.service
+
+6. Настроить mariadb
+
+sudo mysql_secure_installation
+
+Ответы на вопросы диалогового меню.
+
+Enter current password for root (enter for none): нажать Enter
+Set root password? [Y/n]: Y
+New password: <ввести пароль>
+Re-enter new password: <повторить пароль>
+Remove anonymous users? [Y/n]: Y
+Disallow root login remotely? [Y/n]: Y
+Remove test database and access to it? [Y/n]:  Y
+Reload privilege tables now? [Y/n]:  Y
+
+7. Перезапустить mysql
+sudo systemctl restart mariadb.service
+
+8. Установить PHP и его зависимости
+sudo apt-get install -y php libapache2-mod-php php-cli php-common php-mbstring php-gd php-intl php-xml php-mysql php-zip php-curl php-xmlrpc
+
+9. Рестарт апача
+sudo systemctl restart apache2
+
+10. Создать БД для opencart
+$ sudo mysql  -u root -p
+
+$ CREATE DATABASE opencart;
+$ CREATE USER 'ocuser'@'localhost' IDENTIFIED BY 'PASSWORD';
+$ GRANT ALL ON opencart.* TO 'ocuser'@'localhost' IDENTIFIED BY 'PASSWORD' WITH GRANT OPTION;
+$ FLUSH PRIVILEGES;
+$ EXIT;
+
+11. Скачать последнюю версию opencart
+cd /tmp
+wget https://github.com/opencart/opencart/releases/download/3.0.3.1/opencart-3.0.3.1.zip
+
+12. Распаковать архив с opencart
+sudo apt install unzip
+unzip opencart-3.0.3.1.zip
+sudo mv upload/ /var/www/html/opencart
+
+13.
+sudo cp /var/www/html/opencart/config-dist.php /var/www/html/opencart/config.php
+sudo cp /var/www/html/opencart/admin/config-dist.php /var/www/html/opencart/admin/config.php
+
+14.
+sudo chown -R www-data:www-data /var/www/html/opencart/
+sudo chmod -R 755 /var/www/html/opencart/
+
+15. Настроить apache
+sudo nano /etc/apache2/sites-available/opencart.conf
+<VirtualHost *:80>
+     ServerAdmin admin@example.com
+     DocumentRoot  /var/www/html/opencart/
+     ServerName example.com
+     ServerAlias www.example.com
+
+     <Directory  /var/www/html/opencart/>
+        Options FollowSymlinks
+        AllowOverride All
+        Order allow,deny
+        allow from all
+     </Directory>
+
+     ErrorLog ${APACHE_LOG_DIR}/error.log
+     CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+
+
+16. Включить opencart и rewrite модуль
+sudo a2ensite opencart.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+17. Финальные настройки
+Заходим на веб интерфейс opencart. Для этого в браузере вбиваем:
+http://<адрес вашей виртуалки>/opencart/
+	17.1 Принять лицензионное соглашение
+	17.2 Проверить, что все требования помеченый зеленой галочкой
+	17.3 Задать настройки подключения к БД. Имя базы, пользователя и пароль указывали на шаге 10 (opencart, ocuser, PASSWORD)
+	17.4 Задать пароль пользователя admin (я задал admin)
+	17.5 Нажать "Continue"
+
+18. После входа в админку и перемещения storage
+
+sudo mkdir -p /var/www/storage/logs
+sudo mkdir -p /var/www/storage/cache
+sudo chown www-data:www-data /var/www/storage/logs
+sudo chown www-data:www-data /var/www/storage/cache
+
+##########################################################################################################
+Тоже самое, но с использование Nginx (не проверялось)
+https://linuxize.com/post/how-to-install-opencart-on-ubuntu-18-04/
