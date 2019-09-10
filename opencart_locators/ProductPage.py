@@ -22,7 +22,8 @@ class ProductPage:
     button_save_atr = "data-original-title"
     button_save_atr_name = "Save"
     with_buttons = "pull-right"
-    add_button = "/html/body/div/div/div[1]/div/div/a"
-    button_save = "/html/body/div[1]/div/div[1]/div/div/button"
+    add_button_div = "div.pull-right"
+    add_button = "i.fa-plus" #a[data-original-title='Add new'
+    button_save = { "css": "button[data-original-title='Save']" }
     alert_text = "alert-success"
     result_text = "No results!"
