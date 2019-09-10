@@ -7,7 +7,9 @@
 
 from opencart_utils import Utils
 from opencart_locators import Items, ProductPage
-
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 def test_add_product(get_parametrize_driver_fixture_products_page):
     """
@@ -25,8 +27,8 @@ def test_add_product(get_parametrize_driver_fixture_products_page):
     Utils.open_prodact_page(driver)
     Utils.add_product(driver, Items.product_name_0, Items.product_model_0)
 
-    search_succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
-    assert search_succes_massage  # проверка сохранения
+    succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
+    assert succes_massage  # проверка сохранения
 
 
 def test_change_product(get_parametrize_driver_fixture_products_page):
@@ -57,7 +59,7 @@ def test_change_product(get_parametrize_driver_fixture_products_page):
     product_qty.clear()
     product_qty.send_keys(new_qty)
 
-    save_button = driver.find_element_by_xpath(ProductPage.button_save)
+    save_button = driver.find_element_by_css_selector(ProductPage.button_save["css"])
     save_button.click()
 
     succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
@@ -90,8 +92,8 @@ def test_remove_product(get_base_url_fixture, get_parametrize_driver_fixture_pro
         Utils.open_prodact_page(driver)
 
     Utils.remove_product(driver, Items.product_name_1)
-
-    search_succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
+    wait = WebDriverWait(driver, 10)
+    search_succes_massage = wait.until(EC.presence_of_element_located((By.CLASS_NAME, ProductPage.alert_text)))
     assert search_succes_massage # проверка удаления
 
     product_table = Utils.search_product(driver, Items.product_name_1)

@@ -5,6 +5,9 @@
 
 from selenium.webdriver.common.alert import Alert
 from opencart_locators import AdminPage, ProductPage, MainPage, FilterPage
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 class Utils:
 
@@ -29,7 +32,8 @@ class Utils:
         Переход на страницу продуктов
         :return:
         """
-        search_catalog_button = driver.find_element_by_id(MainPage.catalog_button)
+        wait = WebDriverWait(driver, 10)
+        search_catalog_button = wait.until(EC.element_to_be_clickable((By.ID, MainPage.catalog_button)))
         search_catalog_button.click()
         search_product_button = driver.find_element_by_partial_link_text(MainPage.product_button)
         search_product_button.click()
@@ -52,9 +56,7 @@ class Utils:
 
     @staticmethod
     def add_product(driver, product_name, product_module):
-        div_with_buttons = driver.find_element_by_class_name(ProductPage.with_buttons) # button add
-        add_button = div_with_buttons.find_element_by_xpath(ProductPage.add_button)
-        assert add_button.get_attribute("data-original-title") == "Add New"
+        add_button = driver.find_element_by_css_selector(ProductPage.add_button_div).find_element_by_css_selector(ProductPage.add_button)
         add_button.click()
         input_product_name_field = driver.find_element_by_id(FilterPage.product_name_field) # заполненение полей 1 страница
         input_product_name_field.send_keys(product_name)
@@ -65,7 +67,7 @@ class Utils:
         input_model_field = driver.find_element_by_id(FilterPage.model_field)
         input_model_field.send_keys(product_module)
 
-        search_save_button = driver.find_element_by_xpath(ProductPage.button_save)
+        search_save_button = driver.find_element_by_css_selector(ProductPage.button_save["css"])
         search_save_button.click() # сохранение
 
     @staticmethod

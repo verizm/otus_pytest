@@ -28,7 +28,7 @@ def test_open_shopping_cart(get_base_url_fixture, get_parametrize_drivers_fixtur
     """
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
-    search_input = driver.find_element_by_xpath(MainPage.shopping_cart_button)
+    search_input = driver.find_element_by_css_selector(MainPage.shopping_cart_button_div).find_element_by_css_selector(MainPage.shopping_cart_button)
     search_input.click()
 
 
@@ -54,7 +54,7 @@ def test_open_about_us(get_base_url_fixture, get_parametrize_drivers_fixture):
     """
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
-    search_button = driver.find_element_by_xpath(MainPage.about_us_button)
+    search_button = driver.find_element_by_css_selector(MainPage.about_us_button)
     search_button.click()
 
 

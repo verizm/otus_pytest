@@ -10,10 +10,10 @@ def pytest_addoption(parser):
     """
     Функция с реализацией базового url opencart
     """
-    parser.addoption('--url', action='store', default='http://192.168.122.156/opencart/',
+    parser.addoption('--url', action='store', default='http://192.168.88.215/',
                      help='opencart url')
     parser.addoption('--browser', action='store', default='firefox', help='select browser')
-
+    parser.addoption('--delay', action='store', default=0, help='select time for implicity_wait' )
 
 @pytest.fixture()
 def get_base_url_fixture(request):
@@ -41,7 +41,6 @@ def create_driver(request, browser, is_headless=True, sleep_time=0):
         driver = webdriver.Firefox(options=options)
     elif browser == 'chrome':
         options = webdriver.ChromeOptions()
-        options.add_argument("--start-maximized")
         if is_headless:
             options.add_argument('--headless')
         driver = webdriver.Chrome(options=options)
@@ -59,7 +58,11 @@ def create_driver(request, browser, is_headless=True, sleep_time=0):
 
     request.addfinalizer(finalizer)
 
-    driver.implicitly_wait(9) # seconds
+    delay = request.config.getoption('--delay')
+    if delay > 0:
+        driver.implicitly_wait(delay)
+
+    driver.maximize_window()
 
     return driver
 
