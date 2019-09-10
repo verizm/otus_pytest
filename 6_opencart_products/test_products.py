@@ -4,12 +4,13 @@
 изменение данных о товаре
 удаление карточки товара
 """
-
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from opencart_utils import Utils
 from opencart_locators import Items, ProductPage
 
-
-def test_add_product(get_parametrize_driver_fixture_products_page):
+def test_add_product(get_parametrize_driver_fixture_products_page, get_manual_delay_fixture):
     """
     Тест вычищает базу от ранее добавленного продукта
     добавляет продукт
@@ -20,13 +21,18 @@ def test_add_product(get_parametrize_driver_fixture_products_page):
     """
 
     driver = get_parametrize_driver_fixture_products_page
+    manual_delay = get_manual_delay_fixture
+
     Utils.remove_product(driver, Items.product_name_0)
 
-    Utils.open_prodact_page(driver)
-    Utils.add_product(driver, Items.product_name_0, Items.product_model_0)
+    Utils.open_prodact_page(driver, manual_delay)
+    Utils.add_product(driver, Items.product_name_0, Items.product_model_0, manual_delay)
 
-    search_succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
-    assert search_succes_massage  # проверка сохранения
+    form_product = Utils.search_product(driver, Items.product_name_0)
+    tds = form_product.find_elements_by_tag_name(ProductPage.form_product_tag_td)
+    td_qty = tds[5]
+    qty = int(td_qty.text)
+    assert qty == 1
 
 
 def test_change_product(get_parametrize_driver_fixture_products_page):
@@ -47,17 +53,17 @@ def test_change_product(get_parametrize_driver_fixture_products_page):
     qty = int(td_qty.text)
     new_qty = qty + 1
 
-    action_button = tds[7]
+    action_button = tds[7].find_element_by_tag_name("a")
     action_button.click()
 
-    data_page = driver.find_element_by_partial_link_text(ProductPage.data_page_link)
+    data_page = driver.find_element_by_partial_link_text(ProductPage.data_page)
     data_page.click()
 
     product_qty = driver.find_element_by_id(ProductPage.quantity)
     product_qty.clear()
     product_qty.send_keys(new_qty)
 
-    save_button = driver.find_element_by_xpath(ProductPage.button_save)
+    save_button = driver.find_element_by_css_selector(ProductPage.button_save["css"])
     save_button.click()
 
     succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
@@ -71,7 +77,9 @@ def test_change_product(get_parametrize_driver_fixture_products_page):
     assert check_qty == new_qty
 
 
-def test_remove_product(get_base_url_fixture, get_parametrize_driver_fixture_products_page):
+def test_remove_product(
+        get_parametrize_driver_fixture_products_page,
+        get_base_url_fixture, get_manual_delay_fixture):
     """
     Проверяем, что товар присутствует в магазине
     если нет, то создаем карточку нового товара,
@@ -81,18 +89,21 @@ def test_remove_product(get_base_url_fixture, get_parametrize_driver_fixture_pro
     :param get_options_driver_fixture:
     :return:
     """
+
     driver = get_parametrize_driver_fixture_products_page
+    manual_delay = get_manual_delay_fixture
+
     product_table = Utils.search_product(driver, Items.product_name_1)
     no_result = product_table.find_element_by_class_name(ProductPage.product_table_result_class)
     if no_result.text == ProductPage.result_text:
-        Utils.add_product(driver, Items.product_name_1, Items.product_model_1)
+        Utils.add_product(driver, Items.product_name_1, Items.product_model_1, manual_delay)
         Utils.login_opencart_admin(get_base_url_fixture, driver)
-        Utils.open_prodact_page(driver)
+        Utils.open_prodact_page(driver, manual_delay)
 
     Utils.remove_product(driver, Items.product_name_1)
-
-    search_succes_massage = driver.find_element_by_class_name(ProductPage.alert_text)
-    assert search_succes_massage # проверка удаления
+    wait = WebDriverWait(driver, manual_delay)
+    succes_msg = wait.until(EC.presence_of_element_located((By.CLASS_NAME, ProductPage.alert_text)))
+    assert succes_msg # проверка удаления
 
     product_table = Utils.search_product(driver, Items.product_name_1)
     no_result = product_table.find_element_by_class_name(ProductPage.product_table_result_class)

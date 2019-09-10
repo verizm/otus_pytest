@@ -4,15 +4,22 @@
 
 2. Обновить пакеты
 sudo apt-get update
+sudo apt-get upgrade
 
 3. Установить apache
 sudo apt-get install apache2
+
+sudo apt-get install nginx
 
 4. Отключить directory listing
 sudo sed -i "s/Options Indexes FollowSymLinks/Options FollowSymLinks/" /etc/apache2/apache2.conf
 sudo systemctl stop apache2.service
 sudo systemctl start apache2.service
 sudo systemctl enable apache2.service
+
+sudo systemctl stop nginx.service
+sudo systemctl start nginx.service
+sudo systemctl enable nginx.service
 
 5. Установить mariadb
 sudo apt-get install mariadb-server mariadb-client
@@ -40,6 +47,7 @@ sudo systemctl restart mariadb.service
 
 8. Установить PHP и его зависимости
 sudo apt-get install -y php libapache2-mod-php php-cli php-common php-mbstring php-gd php-intl php-xml php-mysql php-zip php-curl php-xmlrpc
+sudo apt install php7.2-common php7.2-cli php7.2-fpm php7.2-opcache php7.2-gd php7.2-mysql php7.2-curl php7.2-intl php7.2-xsl php7.2-mbstring php7.2-zip php7.2-bcmath php7.2-soap
 
 9. Рестарт апача
 sudo systemctl restart apache2
@@ -89,6 +97,48 @@ sudo nano /etc/apache2/sites-available/opencart.conf
      CustomLog ${APACHE_LOG_DIR}/access.log combined
 
 </VirtualHost>
+
+/etc/nginx/sites-enabled/opencart
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/html/opencart;
+    index index.php;
+
+    # log files
+    access_log /var/log/nginx/opencart.access.log;
+    error_log /var/log/nginx/opencart.error.log;
+
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location opencart/ {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires max;
+        log_not_found off;
+    }
+}
 
 
 16. Включить opencart и rewrite модуль
