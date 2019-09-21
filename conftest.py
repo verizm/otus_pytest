@@ -10,7 +10,7 @@ def pytest_addoption(parser):
     """
     Функция с реализацией базового url opencart
     """
-    parser.addoption('--url', action='store', default='http://192.168.88.212/',
+    parser.addoption('--url', action='store', default='http://192.168.88.215/',
                      help='opencart url')
     parser.addoption('--browser', action='store', default='firefox', help='select browser')
     parser.addoption('--implicitly_delay', action='store',
@@ -22,7 +22,7 @@ def pytest_addoption(parser):
 @pytest.fixture()
 def get_base_url_fixture(request):
     """
-    Фикстура возвращает обьект с конфигурацией
+    Фикстура возвращает базовый URL opencart
     """
     return request.config.getoption('--url')
 
@@ -82,7 +82,10 @@ def create_driver(request, browser, is_headless=True, sleep_time=0):
 @pytest.fixture
 def get_options_driver_fixture(request):
     """
-    Фикстура возвращает драйвер
+    Фикстура для ручного тестирования
+    Возвращает драйвер
+    Открывает браузер на весь экран
+    Ждет 5 секунд после окончания теста
     """
     browser = request.config.getoption('--browser')
     return create_driver(request, browser, False, 5)
@@ -126,4 +129,17 @@ def get_parametrize_driver_fixture_products_page(request):
     driver = create_driver(request, browser_param)
     Utils.login_opencart_admin(request.config.getoption('--url'), driver)
     Utils.open_prodact_page(driver, manual_delay)
+    return driver
+
+@pytest.fixture(params=["chrome", "firefox"])
+def get_parametrize_driver_fixture_page_object(request):
+    """
+    Фикстура для тестов в патерне page object
+    :param request:
+    :return: возвращает драйвер
+    """
+    browser_param = request.param
+    driver = create_driver(request, browser_param)
+    driver.implicitly_wait(9)
+    driver.get(request.config.getoption('--url'))
     return driver

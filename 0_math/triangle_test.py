@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class Geometry: # pylint: disable=too-few-public-methods
+class Geometry:
     """Класс для работы с типами треугольников"""
 
     class TriangleType(Enum):

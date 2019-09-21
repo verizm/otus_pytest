@@ -1,7 +1,8 @@
 """
 Модуль для тестирования frontend opencart
 """
-from opencart_locators import MainPage, AdminPage, Items
+from opencart_locators import Main, Admin, Items
+from opencart_utils import Utils
 
 def test_search_iphone(get_base_url_fixture, get_parametrize_drivers_fixture):
     """
@@ -13,9 +14,9 @@ def test_search_iphone(get_base_url_fixture, get_parametrize_drivers_fixture):
     """
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
-    search_input = driver.find_element_by_name(MainPage.search_button)
+    search_input = driver.find_element_by_css_selector(Main.search_field['css'])
     search_input.send_keys(Items.product_iphone)
-    search_button = driver.find_element_by_class_name(MainPage.input_field)
+    search_button = driver.find_element_by_class_name(Main.input_field)
     search_button.click()
 
 
@@ -28,8 +29,8 @@ def test_open_shopping_cart(get_base_url_fixture, get_parametrize_drivers_fixtur
     """
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
-    div = driver.find_element_by_css_selector(MainPage.shopping_cart_button_div)
-    search_input = div.find_element_by_css_selector(MainPage.shopping_cart_button)
+    div = driver.find_element_by_css_selector(Main.shopping_cart_button_div)
+    search_input = div.find_element_by_css_selector(Main.shopping_cart_button)
     search_input.click()
 
 
@@ -42,7 +43,7 @@ def test_open_wish_list(get_base_url_fixture, get_parametrize_drivers_fixture):
     """
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
-    search_button = driver.find_element_by_id(MainPage.wish_list_button)
+    search_button = driver.find_element_by_css_selector(Main.wish_list_button)
     search_button.click()
 
 
@@ -55,7 +56,7 @@ def test_open_about_us(get_base_url_fixture, get_parametrize_drivers_fixture):
     """
     driver = get_parametrize_drivers_fixture
     driver.get(get_base_url_fixture)
-    search_button = driver.find_element_by_css_selector(MainPage.about_us_button)
+    search_button = driver.find_element_by_partial_link_text(Main.about_us_button)
     search_button.click()
 
 
@@ -67,15 +68,9 @@ def test_login_admin(get_base_url_fixture, get_parametrize_drivers_fixture):
     :return:
     """
     driver = get_parametrize_drivers_fixture
-    driver.get(get_base_url_fixture + "admin")
-    search_input_login = driver.find_element_by_id(AdminPage.admin_login_field)
-    search_input_login.send_keys(AdminPage.keys_login)
-    search_input_password = driver.find_element_by_id(AdminPage.admint_password_field)
-    search_input_password.send_keys(AdminPage.keys_password)
-    search_button = driver.find_element_by_class_name(AdminPage.enter_admin_button)
-    search_button.click()
+    Utils.login_opencart_admin(get_base_url_fixture, driver)
 
-    assert AdminPage.main_admin_title in driver.title
+    assert Admin.main_admin_title in driver.title
 
 
 def test_get_elements(get_base_url_fixture, get_parametrize_drivers_fixture):

@@ -1,11 +1,13 @@
 """
 Класс содержит элементы для работы с карточкой товара
 """
-class ProductPage:
+class Product:
     """
     Элементы product page
     Элементы таблицы товара
     """
+    catalog_button = "menu-catalog"
+    product_button = "Products"
     filter_field = "input-name"
     filter_button = "button-filter"
     quantity = "input-quantity"
@@ -23,7 +25,7 @@ class ProductPage:
     button_save_atr_name = "Save"
     with_buttons = "pull-right"
     add_button_div = "div.pull-right"
-    add_button = "i.fa-plus" #a[data-original-title='Add new'
-    button_save = { "css": "button[data-original-title='Save']" }
+    add_button = ("a[data-original-title='Add New']")
+    button_save = {"css": "button[data-original-title='Save']"}
     alert_text = "alert-success"
     result_text = "No results!"
