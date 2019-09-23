@@ -106,7 +106,8 @@ def get_parametrize_drivers_fixture(request):
 @pytest.fixture
 def get_options_driver_fixture_products_page(request):
     """
-    Фикстура возвращает драйвер
+    Фикстура логинится в админку
+    переходит на страницу продуктов
     """
     browser = request.config.getoption('--browser')
     manual_delay = request.config.getoption('--manual_delay')
@@ -116,10 +117,10 @@ def get_options_driver_fixture_products_page(request):
     return driver
 
 
-@pytest.fixture(params=["firefox", "ie"])
+@pytest.fixture(params=["firefox"])
 def get_parametrize_driver_fixture_products_page(request):
     """
-    Фикстура позволяет проводить тесты
+    Фикстура позволяет проводить тесты админки
     в заданных браузерах
     :param request:
     :return:
@@ -142,4 +143,15 @@ def get_parametrize_driver_fixture_page_object(request):
     driver = create_driver(request, browser_param)
     driver.implicitly_wait(9)
     driver.get(request.config.getoption('--url'))
+    return driver
+
+@pytest.fixture(params=["chrome", "firefox"])
+def get_options_driver_fixture_admin_page(request):
+    """
+    Фикстура логинится в админку
+    """
+    browser = request.config.getoption('--browser')
+    driver = create_driver(request, browser)
+    Utils.login_opencart_admin(request.config.getoption('--url'), driver)
+    driver.implicitly_wait(8)
     return driver
