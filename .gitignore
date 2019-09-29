@@ -8,4 +8,7 @@ logs/
 results.txt
 geckodriver.log
 
+assets/
+report.html
+
 .idea/

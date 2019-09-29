@@ -237,3 +237,24 @@ def get_options_driver_fixture_admin_page(request):
     Utils.login_opencart_admin(request.config.getoption('--url'), driver)
     driver.implicitly_wait(8)
     return driver
+
+@pytest.fixture(scope='session', autouse=True)
+def configure_html_report_env(request):
+    """
+    Фикстура с расширениями для html report
+    """
+    # получаем путь к текущему файлу - он лежит в корне проекта
+    projectdir = os.path.dirname(__file__)
+    file = open(os.path.join(projectdir, 'requirements.txt'))
+    request.config._metadata.update( # pylint: disable=W0212
+        {
+            "driver": request.config.getoption("--browser"),
+            "url": request.config.getoption("--url"),
+            "implicitly_delay": request.config.getoption("--implicitly_delay"),
+            "manual_delay": request.config.getoption("--manual_delay"),
+            "path": os.environ["PATH"],
+            "lc_name": os.environ["LC_NAME"],
+            "requirements": file.readlines()
+        }
+    )
+    yield
