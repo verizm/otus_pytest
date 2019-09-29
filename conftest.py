@@ -1,10 +1,15 @@
 """Модуль с фикстурами"""
 
+import os
 import time
+import logging
+from datetime import date
+
 import pytest
 from selenium import webdriver
-from opencart_utils import Utils
+from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
 
+from opencart_utils import Utils
 
 def pytest_addoption(parser):
     """
@@ -35,6 +40,72 @@ def get_manual_delay_fixture(request):
     return request.config.getoption('--manual_delay')
 
 
+def build_logger(logdir, datestr):
+    """
+    Вспомогательный метод для создания логгера
+    :return:
+    """
+    # Create a custom logger
+    logger = logging.getLogger("logger")
+    logger.setLevel(logging.DEBUG)
+
+    # Create handlers
+    c_handler = logging.StreamHandler()
+    f_handler = logging.FileHandler(os.path.join(logdir, "selenium_" + datestr + '.log'))
+
+    c_handler.setLevel(logging.WARNING)
+    f_handler.setLevel(logging.DEBUG)
+
+    # Create formatters and add it to handlers
+    c_format = logging.Formatter('%(asctime)s : %(filename)s - %(levelname)s - %(message)s')
+    f_format = logging.Formatter('%(asctime)s : %(filename)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(c_format)
+    f_handler.setFormatter(f_format)
+
+    # Add handlers to the logger
+    logger.addHandler(c_handler)
+    logger.addHandler(f_handler)
+
+    return logger
+
+
+class MyListener(AbstractEventListener):
+    """
+    Мой лисенер логов
+    """
+    def __init__(self, logger, logdir, datestr):
+        self.logger = logger
+        self.logdir = logdir
+        self.datestr = datestr
+
+    def before_find(self, by, value, driver):
+        self.logger.info('before_find:' + "'" + by + "' " + "'" + value + "'")
+
+    def after_find(self, by, value, driver):
+        self.logger.info('after_find: ' + "'" + by + "' " + "'" + value + "'")
+
+    def before_navigate_to(self, url, driver):
+        self.logger.info('before_navigate:' + "'" + url + "'")
+
+    def after_navigate_to(self, url, driver):
+        self.logger.info('after_navigate: ' + "'" + url + "'")
+
+    def on_exception(self, exception, driver):
+        self.logger.error("on_exception: " + str(exception))
+        # get PATH for  get test name
+        tlist = os.environ.get('PYTEST_CURRENT_TEST').split('/')
+        # format test name
+        testname = tlist[len(tlist) - 1]
+        testname = testname.replace(" (call)", "")
+        # create name of screen
+        fname = "selenium_" + testname + "_" + self.datestr + ".png"
+        # create path for
+        fpath = os.path.join(self.logdir, fname)
+        # save screen
+        self.logger.error("saving screen: " + fpath)
+        driver.save_screenshot(fpath)
+
+
 def create_driver(request, browser, is_headless=True, sleep_time=0):
     """
     Вспомогательная функция для
@@ -45,12 +116,16 @@ def create_driver(request, browser, is_headless=True, sleep_time=0):
     :param sleep_time:
     :return:
     """
+    logdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    datestr = str(date.today())
+
     driver = None
     if browser == 'firefox':
         options = webdriver.FirefoxOptions()
         if is_headless:
             options.add_argument('--headless')
-        driver = webdriver.Firefox(options=options)
+        gekolog = os.path.join(logdir, "geckodriver.log")
+        driver = webdriver.Firefox(options=options, service_log_path=gekolog)
     elif browser == 'chrome':
         options = webdriver.ChromeOptions()
         if is_headless:
@@ -64,19 +139,24 @@ def create_driver(request, browser, is_headless=True, sleep_time=0):
     else:
         raise ValueError('Unsupported browser. Please select from [firefox, ie, chrome]')
 
+    # maximize browser window
+    driver.maximize_window()
+
+    # setup optional implicitly_wait
+    delay = request.config.getoption('--implicitly_delay')
+    if int(delay) > 0:
+        driver.implicitly_wait(delay)
+
+    listener = MyListener(build_logger(logdir, datestr), logdir, datestr)
+    ew_driver = EventFiringWebDriver(driver, listener)
+
     def finalizer():
         time.sleep(sleep_time)
         driver.close()
 
     request.addfinalizer(finalizer)
 
-    delay = request.config.getoption('--implicitly_delay')
-    if int(delay) > 0:
-        driver.implicitly_wait(delay)
-
-    driver.maximize_window()
-
-    return driver
+    return ew_driver
 
 
 @pytest.fixture
@@ -100,7 +180,7 @@ def get_parametrize_drivers_fixture(request):
     :return:
     """
     browser_param = request.param
-    return create_driver(request, browser_param)
+    return create_driver(request, browser_param, False, 1)
 
 
 @pytest.fixture
@@ -132,6 +212,7 @@ def get_parametrize_driver_fixture_products_page(request):
     Utils.open_prodact_page(driver, manual_delay)
     return driver
 
+
 @pytest.fixture(params=["chrome", "firefox"])
 def get_parametrize_driver_fixture_page_object(request):
     """
@@ -144,6 +225,7 @@ def get_parametrize_driver_fixture_page_object(request):
     driver.implicitly_wait(9)
     driver.get(request.config.getoption('--url'))
     return driver
+
 
 @pytest.fixture(params=["chrome", "firefox"])
 def get_options_driver_fixture_admin_page(request):
